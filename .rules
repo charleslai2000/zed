@@ -1,3 +1,29 @@
+## Purpose
+
+- Read-only reference source for GPUI architecture and Element/Entity model.
+- Do not modify any files in this repository.
+
+## Key Paths
+
+- `crates/gpui/src/` — GPUI framework core (Element trait, Window, App context, entity model).
+- `crates/gpui/src/element.rs` — Element trait definition and lifecycle.
+- `crates/gpui/src/window.rs` — Window rendering, hit-test, focus management.
+- `crates/gpui/src/app/entity_map.rs` — Entity (Model) ownership and subscription.
+- `crates/gpui/src/style.rs` — Style types and taffy integration.
+- `crates/gpui/src/key_dispatch.rs` — Keyboard event dispatch and action system.
+- `crates/ui/src/components/` — Zed UI components built on GPUI (Button, Label, Icon, List, etc.).
+- `crates/ui/src/styles/` — Zed theme token definitions.
+- `crates/theme/src/` — Theme loading and color resolution.
+
+## Usage in Atelier
+
+- Reference GPUI's Element trait design when evolving WidgetNode architecture.
+- Study Entity/Context/Window patterns for state management.
+- Compare Zed UI components with our widget data models for completeness.
+- Do not adopt GPUI's rendering pipeline; Atelier uses vello directly.
+
+---
+
 # Rust coding guidelines
 
 * Prioritize code correctness and clarity. Speed and efficiency are secondary priorities unless otherwise specified.
@@ -6,10 +32,10 @@
 * Avoid using functions that panic like `unwrap()`, instead use mechanisms like `?` to propagate errors.
 * Be careful with operations like indexing which may panic if the indexes are out of bounds.
 * Never silently discard errors with `let _ =` on fallible operations. Always handle errors appropriately:
-  - Propagate errors with `?` when the calling function should handle them
-  - Use `.log_err()` or similar when you need to ignore errors but want visibility
-  - Use explicit error handling with `match` or `if let Err(...)` when you need custom logic
-  - Example: avoid `let _ = client.request(...).await?;` - use `client.request(...).await?;` instead
+   - Propagate errors with `?` when the calling function should handle them
+   - Use `.log_err()` or similar when you need to ignore errors but want visibility
+   - Use explicit error handling with `match` or `if let Err(...)` when you need custom logic
+   - Example: avoid `let _ = client.request(...).await?;` - use `client.request(...).await?;` instead
 * When implementing async operations that may fail, ensure errors propagate to the UI layer so users get meaningful feedback.
 * Never create files with `mod.rs` paths - prefer `src/some_module.rs` instead of `src/some_module/mod.rs`.
 * When creating new crates, prefer specifying the library root path in `Cargo.toml` using `[lib] path = "...rs"` instead of the default `lib.rs`, to maintain consistent and descriptive naming (e.g., `gpui.rs` or `main.rs`).
@@ -17,6 +43,7 @@
 * Use full words for variable names (no abbreviations like "q" for "queue")
 * Use variable shadowing to scope clones in async contexts for clarity, minimizing the lifetime of borrowed references.
   Example:
+
   ```rust
   executor.spawn({
       let task_ran = task_ran.clone();
@@ -29,8 +56,8 @@
 # Timers in tests
 
 * In GPUI tests, prefer GPUI executor timers over `smol::Timer::after(...)` when you need timeouts, delays, or to drive `run_until_parked()`:
-  - Use `cx.background_executor().timer(duration).await` (or `cx.background_executor.timer(duration).await` in `TestAppContext`) so the work is scheduled on GPUI's dispatcher.
-  - Avoid `smol::Timer::after(...)` for test timeouts when you rely on `run_until_parked()`, because it may not be tracked by GPUI's scheduler and can lead to "nothing left to run" when pumping.
+   - Use `cx.background_executor().timer(duration).await` (or `cx.background_executor.timer(duration).await` in `TestAppContext`) so the work is scheduled on GPUI's dispatcher.
+   - Avoid `smol::Timer::after(...)` for test timeouts when you rely on `run_until_parked()`, because it may not be tracked by GPUI's scheduler and can lead to "nothing left to run" when pumping.
 
 # GPUI
 
@@ -145,8 +172,8 @@ When an agent opens or updates a pull request, it must:
 - Optionally prefix the title with a crate name when one crate is the clear scope (for example, `git_ui: Add history view`).
 - Include a `Release Notes:` section as the final section in the PR body.
 - Use one bullet under `Release Notes:`:
-  - `- Added ...`, `- Fixed ...`, or `- Improved ...` for user-facing changes, or
-  - `- N/A` for docs-only and other non-user-facing changes.
+   - `- Added ...`, `- Fixed ...`, or `- Improved ...` for user-facing changes, or
+   - `- N/A` for docs-only and other non-user-facing changes.
 - Format release notes exactly with a blank line after the heading, for example:
 
 ```
@@ -158,6 +185,7 @@ Release Notes:
 # Crash Investigation
 
 ## Sentry Integration
+
 - Crash investigation prompts: `.factory/prompts/crash/investigate.md`
 - Crash fix prompts: `.factory/prompts/crash/fix.md`
 - Fetch crash reports: `script/sentry-fetch <issue-id>`
@@ -168,10 +196,13 @@ Release Notes:
 These `.rules` files are read by every agent session. Keep them high-signal.
 
 ## After any agentic session
+
 If you discover a non-obvious pattern that would help future sessions, include a **"Suggested .rules additions"** heading in your PR description with the proposed text. Do **not** edit `.rules` inline during normal feature/fix work. Reviewers decide what gets merged.
 
 ## High bar for new rules
+
 Editing or clarifying existing rules is always welcome. New rules must meet **all three** criteria:
+
 1. **Non-obvious** — someone familiar with the codebase would still get it wrong without the rule.
 2. **Repeatedly encountered** — it came up more than once (multiple hits in one session counts).
 3. **Specific enough to act on** — a concrete instruction, not a vague principle.
@@ -179,10 +210,13 @@ Editing or clarifying existing rules is always welcome. New rules must meet **al
 Rules that apply to a single crate belong in that crate's own `.rules` file, not the repo root.
 
 ## What NOT to put in `.rules`
+
 Avoid architectural descriptions of a crate (module layout, data flow, key types). These go stale fast and the agent can gather them by reading the code. Rules should be **traps to avoid**, not **maps to follow**.
 
 ## No drive-by additions
+
 Rules emerge from validated patterns, not one-off observations. The workflow is:
+
 1. Agent notes a pattern during a session.
 2. Team validates the pattern in code review.
 3. A dedicated commit adds the rule with context on *why* it exists.
